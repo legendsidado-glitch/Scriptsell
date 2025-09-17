@@ -1,89 +1,152 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My GitHub Website</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f4f4f4;
-      color: #333;
-    }
-    header {
-      background: #007acc;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-    nav {
-      background: #005f99;
-      display: flex;
-      justify-content: center;
-      padding: 10px 0;
-    }
-    nav a {
-      color: white;
-      margin: 0 15px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    nav a:hover {
-      text-decoration: underline;
-    }
-    section {
-      padding: 40px;
-      max-width: 800px;
-      margin: auto;
-      background: white;
-      margin-top: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    footer {
-      text-align: center;
-      padding: 20px;
-      margin-top: 20px;
-      background: #007acc;
-      color: white;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Welcome to My Website 🌍</h1>
-    <p>Built with GitHub Pages</p>
-  </header>
+"""
+Better Mocks System
+-------------------
+This is a single-file Python program that simulates:
+- An API (Api class)
+- A Network system (Network class)
+- A Firewall with overload detection (Firewall class)
+- A SetManager acting as storage (SetManager class)
 
-  <nav>
-    <a href="#about">About</a>
-    <a href="#projects">Projects</a>
-    <a href="#contact">Contact</a>
-  </nav>
+It’s designed as a mock system you can upload to GitHub,
+run locally, and extend into a real project later.
+"""
 
-  <section id="about">
-    <h2>About Me</h2>
-    <p>Hello! I’m learning how to make websites for free using GitHub Pages. 
-       This is my first site 🚀</p>
-  </section>
+import logging
+import random
+import time
+from typing import Dict, Any, Optional
 
-  <section id="projects">
-    <h2>Projects</h2>
-    <ul>
-      <li>🌟 Project One</li>
-      <li>⚡ Project Two</li>
-      <li>🔥 Project Three</li>
-    </ul>
-  </section>
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-  <section id="contact">
-    <h2>Contact</h2>
-    <p>You can reach me at: <b>myemail@example.com</b></p>
-  </section>
 
-  <footer>
-    <p>© 2025 My GitHub Website | Made with ❤️</p>
-  </footer>
-</body>
-</html>
+# ---------------------------
+# API MOCK
+# ---------------------------
+class Api:
+    """Mock of an external API service."""
+
+    @staticmethod
+    def get_modal_data(i: int) -> Dict[str, Any]:
+        logging.info(f"[API] Fetching modal data for index {i}")
+        time.sleep(random.uniform(0.1, 0.3))  # simulate latency
+
+        if random.random() < 0.1:
+            raise ConnectionError("API timeout while fetching modal data")
+
+        return {
+            "index": i,
+            "title": f"Modal {i}",
+            "payload": {"timestamp": time.time()},
+        }
+
+
+# ---------------------------
+# NETWORK MOCK
+# ---------------------------
+class Network:
+    """Mock of a network service with injectable objects."""
+
+    def __init__(self):
+        self.injections: Dict[str, Any] = {}
+
+    def new(self) -> Dict[str, Any]:
+        logging.info("[Network] Creating new network object")
+        return {"id": len(self.injections) + 1, "status": "new"}
+
+    def inject(self, name: str, payload: Any) -> Dict[str, Any]:
+        logging.info(f"[Network] Injecting object under key '{name}'")
+        obj = {"name": name, "payload": payload, "status": "injected"}
+        self.injections[name] = obj
+        return obj
+
+
+# ---------------------------
+# FIREWALL MOCK
+# ---------------------------
+class Firewall:
+    """Mock of a firewall system with detection and overload states."""
+
+    def __init__(self):
+        self.status = "NoLoad"
+        self.overload_info: Dict[str, Any] = {}
+
+    def detect_and_inject(self, name: str) -> Dict[str, Any]:
+        logging.info(f"[Firewall] Detecting intrusion, creating injection '{name}'")
+        return {"name": name, "type": "anti/firewall", "detected": True}
+
+    def set_firewall_overload_info(self, selection: str) -> Dict[str, Any]:
+        logging.info(f"[Firewall] Gathering overload info for selection '{selection}'")
+
+        # simulate varying load
+        connections = random.randint(200, 2000)
+        self.overload_info = {
+            "selection": selection,
+            "cpu": random.choice(["low", "medium", "high"]),
+            "connections": connections,
+            "details": "mock overload metrics",
+        }
+
+        self.status = "Overload" if connections > 1000 else "NoLoad"
+        return self.overload_info
+
+
+# ---------------------------
+# SET MANAGER MOCK
+# ---------------------------
+class SetManager:
+    """Mock key/value store for injected objects and flags."""
+
+    def __init__(self):
+        self.storage: Dict[str, Any] = {}
+
+    def inject_main(self, key: str, value: Any) -> Any:
+        logging.info(f"[SetManager] Injecting into '{key}'")
+        self.storage[key] = value
+        return value
+
+    def get(self, key: str) -> Optional[Any]:
+        return self.storage.get(key)
+
+
+# ---------------------------
+# MAIN WORKFLOW
+# ---------------------------
+def run():
+    api, net, fw, sets = Api(), Network(), Firewall(), SetManager()
+
+    # 1. Get modal data
+    try:
+        modal = api.get_modal_data(i=2)
+        logging.info(f"Modal fetched: {modal}")
+    except Exception as e:
+        logging.error(f"Modal fetch failed: {e}")
+        return
+
+    # 2. Create and inject network object
+    net_obj = net.new()
+    sets.inject_main("Main", net_obj)
+    injected = net.inject("net_inject_1", net_obj)
+    logging.info(f"Injected: {injected}")
+
+    # 3. Firewall detection & anti-injection
+    anti = fw.detect_and_inject("anti/firewall")
+    logging.info(f"Firewall injection: {anti}")
+
+    # 4. Firewall overload info
+    overload = fw.set_firewall_overload_info("all")
+    logging.info(f"Overload info: {overload}")
+
+    # 5. Attack flag based on firewall status
+    if fw.status == "Overload":
+        sets.inject_main("≠Atack≠", {"active": True, "reason": "Firewall overloaded"})
+    else:
+        sets.inject_main("≠Atack≠", {"active": False})
+
+    # 6. Final snapshot
+    logging.info("Final SetManager snapshot:")
+    for k, v in sets.storage.items():
+        logging.info(f" - {k}: {v}")
+
+
+if __name__ == "__main__":
+    run()
